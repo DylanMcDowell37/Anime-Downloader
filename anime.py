@@ -1,8 +1,8 @@
 import os
+import time
 import tkinter
 from tkinter import filedialog
 import ffmpeg
-
 
 def compress_video(video_full_path, output_file_name, target_size):
     # Reference: https://en.wikipedia.org/wiki/Bit_rate#Encoding_bit_rate
@@ -38,25 +38,29 @@ def compress_video(video_full_path, output_file_name, target_size):
 root = tkinter.Tk()
 root.withdraw() #use to hide tkinter window
 anime = input('anime: ')
-def search_for_file_path ():
+
+def search_for_file_path():
     currdir = os.getcwd()
     tempdir = filedialog.askdirectory(parent=root, initialdir=currdir, title='Please select a directory')
     if len(tempdir) > 0:
         print ("You chose: %s" % tempdir)
-        for files in os.listdir(tempdir):
-            videoin = tempdir +'/'+files
-            videoout = tempdir +'/'+anime.replace(' ', '_')+files.replace('.ts', '.mp4')
-            compress_video(videoin, videoout, 50 * 1000)
-            os.remove(videoin)
-            
-            #https://mattermost.energy.gov/hooks/w4q66gsjcbg67yzw8tw4amhgry
     return tempdir
 
+def watch_for_new_files(dir_path):
+    files = []
+    while True:
+        new_files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+        for file in new_files:
+            if file.endswith('.ts') and file not in files:
+                files.append(file)
+                videoin = os.path.join(dir_path, file)
+                videoout = os.path.join(dir_path, anime.replace(' ', '_')+file.replace('.ts', '.mp4'))
+                compress_video(videoin, videoout, 50 * 1000)
+                os.remove(videoin)
+        time.sleep(10)
 
 os.system('animdl download ' +'"'+ anime +'"')
 file_path_variable = search_for_file_path()
 print ("\nfile_path_variable = ", file_path_variable)
 
-
-
-
+watch_for_new_files(file_path_variable)
